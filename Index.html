@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VYBLO</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;overflow-x:hidden}
+body{font-family:'Fredoka',sans-serif;color:#fff;background:linear-gradient(160deg,#38bdf8,#22d3ee 50%,#6ee7b7) fixed;min-height:100vh;display:flex;justify-content:center;padding:16px}
+#app{width:100%;max-width:460px;margin:auto}
+.screen{display:none}
+.screen.active{display:block;animation:in .35s ease}
+@keyframes in{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card{background:rgba(255,255,255,.22);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid rgba(255,255,255,.45);border-radius:24px;padding:22px;box-shadow:0 10px 30px rgba(0,60,120,.18)}
+.logo{font-size:3.2rem;font-weight:700;letter-spacing:4px;text-align:center;animation:float 3s ease-in-out infinite;text-shadow:0 3px 0 #7c3aed,0 6px 14px rgba(124,58,237,.4);margin:8px 0}
+h2{margin:0 0 6px;font-size:1.5rem;text-shadow:0 2px 6px rgba(0,0,0,.15)}
+p{line-height:1.45;margin:6px 0 14px;text-shadow:0 1px 3px rgba(0,0,0,.12)}
+.sub{text-align:center;font-size:1.15rem}
+.small{font-size:.85rem;opacity:.95}
+.btn{display:block;width:100%;min-height:52px;border:0;border-radius:16px;background:#7c3aed;color:#fff;font:600 1.1rem 'Fredoka',sans-serif;margin:10px 0;cursor:pointer;box-shadow:0 5px 0 #5b21b6;transition:transform .1s,box-shadow .1s}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 #5b21b6}
+.btn.alt{background:rgba(255,255,255,.9);color:#6d28d9;box-shadow:0 5px 0 rgba(109,40,217,.35)}
+.row{display:flex;gap:10px}.row .btn{flex:1}
+input,textarea{width:100%;min-height:50px;border:2px solid transparent;border-radius:14px;padding:12px 14px;font:500 1.05rem 'Fredoka',sans-serif;color:#4c1d95;background:rgba(255,255,255,.95);outline:none;margin:6px 0}
+input:focus,textarea:focus{border-color:#7c3aed}
+textarea{resize:none;font-size:.9rem}
+label{display:block;font-weight:600;margin-top:10px}
+.msg{min-height:22px;font-weight:600;color:#fff;background:transparent;border-radius:10px}
+.msg.err{background:#be123c;padding:8px 12px}
+.msg.ok{background:#15803d;padding:8px 12px}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt{min-height:56px;border-radius:16px;border:2px solid rgba(255,255,255,.6);background:rgba(255,255,255,.2);color:#fff;font:600 1.05rem 'Fredoka',sans-serif;cursor:pointer}
+.opt.sel{background:#7c3aed;border-color:#fff}
+.counter{display:flex;align-items:center;justify-content:center;gap:22px;margin:18px 0}
+.round{width:60px;height:60px;border-radius:50%;border:0;background:#fff;color:#7c3aed;font:700 2rem 'Fredoka',sans-serif;cursor:pointer}
+.round:active{transform:scale(.9)}
+.num{font-size:3rem;font-weight:700;min-width:70px;text-align:center}
+.bar{height:12px;background:rgba(255,255,255,.35);border-radius:8px;overflow:hidden;margin:8px 0 14px}
+.bar i{display:block;height:100%;width:0;background:#7c3aed;border-radius:8px;transition:width .3s}
+.spinner{width:34px;height:34px;border:4px solid rgba(255,255,255,.5);border-top-color:#7c3aed;border-radius:50%;animation:spin .8s linear infinite;margin:14px auto}
+.score{font-size:3.4rem;font-weight:700;text-align:center;color:#fff;text-shadow:0 3px 0 #7c3aed}
+.item{background:rgba(255,255,255,.88);color:#4c1d95;border-radius:14px;padding:12px;margin:10px 0;border-left:8px solid #15803d;word-break:break-word}
+.item.bad{border-left-color:#be123c}
+.item b{display:block;margin-bottom:4px}
+.tag{font-weight:700}
+.rank{display:flex;gap:10px;align-items:center;background:rgba(255,255,255,.88);color:#4c1d95;border-radius:14px;padding:10px 14px;margin:8px 0;font-weight:600}
+.rank span:nth-child(2){flex:1;word-break:break-word}
+.hidden{display:none}
+.sndbtn{position:fixed;top:12px;right:12px;width:44px;height:44px;border-radius:50%;border:0;background:rgba(255,255,255,.88);font-size:1.2rem;z-index:20;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<button class="sndbtn" id="soundBtn" aria-label="Sound on or off">🔊</button>
+<div id="app">
+
+<section class="screen card active" id="s-home">
+  <div class="logo">VYBLO</div>
+  <p class="sub">How well do your friends really know you?</p>
+  <button class="btn" id="startBtn">Start</button>
+  <button class="btn alt" id="createBtn">Create a Quiz</button>
+  <button class="btn alt" id="homeBoardBtn">Local Leaderboard</button>
+</section>
+
+<section class="screen card" id="s-creator">
+  <h2>Who are you?</h2><p>Your friends will see this name on the quiz.</p>
+  <label for="creatorName">Your name</label>
+  <input id="creatorName" maxlength="40" placeholder="Enter your name" autocomplete="off">
+  <div class="msg" id="m-creator"></div>
+  <div class="row"><button class="btn alt" data-go="s-home">Back</button><button class="btn" id="creatorNext">Next</button></div>
+</section>
+
+<section class="screen card" id="s-gender">
+  <h2>Your gender</h2><p>Pick one option.</p>
+  <div class="opts" id="genderOpts">
+    <button class="opt" data-g="Male">Male</button>
+    <button class="opt" data-g="Female">Female</button>
+    <button class="opt" data-g="Other">Other</button>
+    <button class="opt" data-g="Prefer not to say">Prefer not to say</button>
+  </div>
+  <div class="msg" id="m-gender"></div>
+  <div class="row"><button class="btn alt" data-go="s-creator">Back</button><button class="btn" id="genderNext">Next</button></div>
+</section>
+
+<section class="screen card" id="s-count">
+  <h2>How many questions?</h2><p>Choose between 1 and 20.</p>
+  <div class="counter"><button class="round" id="minusBtn" aria-label="Fewer">−</button><div class="num" id="countNum">5</div><button class="round" id="plusBtn" aria-label="More">+</button></div>
+  <div class="msg" id="m-count"></div>
+  <div class="row"><button class="btn alt" data-go="s-gender">Back</button><button class="btn" id="countNext">Next</button></div>
+</section>
+
+<section class="screen card" id="s-questions">
+  <h2>Write your questions</h2><p>Example: “What is my favorite food?”</p>
+  <div id="qFields"></div>
+  <div class="msg" id="m-questions"></div>
+  <div class="row"><button class="btn alt" data-go="s-count">Back</button><button class="btn" id="questionsNext">Next</button></div>
+</section>
+
+<section class="screen card" id="s-answers">
+  <h2>Correct answers</h2><p>Write the right answer for each question.</p>
+  <div id="aFields"></div>
+  <div class="msg" id="m-answers"></div>
+  <div class="row"><button class="btn alt" data-go="s-questions">Back</button><button class="btn" id="answersNext">Create Link</button></div>
+</section>
+
+<section class="screen card" id="s-share">
+  <h2>Your quiz link</h2>
+  <div id="linkLoading"><div class="spinner"></div><p class="small" style="text-align:center">Building your link…</p></div>
+  <div id="linkReady" class="hidden">
+    <textarea id="linkBox" rows="5" readonly></textarea>
+    <div class="row"><button class="btn" id="copyBtn">Copy Link</button><button class="btn" id="shareBtn">Share</button></div>
+    <div class="msg" id="m-share"></div>
+    <p class="small" id="fileWarn"></p>
+    <p class="small">Privacy note: your name, questions and correct answers are contained in the link. Anyone technically curious can decode the answers, so this is not secure or private. Results are not sent back to you.</p>
+  </div>
+  <div class="row"><button class="btn alt" data-go="s-answers">Back</button><button class="btn alt" data-go="s-home">Home</button></div>
+</section>
+
+<section class="screen card" id="s-friend">
+  <h2 id="friendTitle">Quiz</h2><p>Answer honestly. Let's see how well you know them!</p>
+  <label for="friendName">Your name</label>
+  <input id="friendName" maxlength="40" placeholder="Enter your name" autocomplete="off">
+  <div class="msg" id="m-friend"></div>
+  <button class="btn" id="friendStart">Start Quiz</button>
+  <button class="btn alt" data-go="s-home">Home</button>
+</section>
+
+<section class="screen card" id="s-play">
+  <p class="small" id="progressText"></p>
+  <div class="bar"><i id="progressFill"></i></div>
+  <h2 id="playQ"></h2>
+  <input id="playAns" maxlength="300" placeholder="Type your answer" autocomplete="off">
+  <div class="msg" id="m-play"></div>
+  <div class="row"><button class="btn alt" id="backQ">Back</button><button class="btn" id="nextQ">Next</button></div>
+</section>
+
+<section class="screen card" id="s-results">
+  <h2 id="resTitle">Results</h2>
+  <div class="score" id="resScore"></div>
+  <div id="resList"></div>
+  <button class="btn" id="againBtn">Play Again</button>
+  <button class="btn alt" id="resBoardBtn">Local Leaderboard</button>
+  <button class="btn alt" data-go="s-home">Back to Home</button>
+</section>
+
+<section class="screen card" id="s-board">
+  <h2>Local Leaderboard</h2>
+  <p class="small">This leaderboard only shows results played in this browser on this device. It is NOT a shared online leaderboard and is not synced between phones. A shared leaderboard needs an online backend or a third-party service.</p>
+  <div id="boardList"></div>
+  <div class="msg" id="m-board"></div>
+  <button class="btn alt" id="clearBoard">Clear My Local Results</button>
+  <button class="btn" data-go="s-home">Home</button>
+</section>
+
+<section class="screen card" id="s-error">
+  <h2>Oops!</h2>
+  <div class="msg err" id="errText"></div>
+  <button class="btn" data-go="s-home">Go Home</button>
+</section>
+
+</div>
+<script>
+(function(){
+"use strict";
+var MAX_DATA=8000, KEY="vyblo_board_v1";
+var S={name:"",gender:"",count:5,qs:[],as:[],quiz:null,friend:"",ans:[],idx:0,link:""};
+function $(id){return document.getElementById(id);}
+
+/* ===== sound effects (no files needed, made with WebAudio) ===== */
+var SND_KEY="vyblo_sound_v1",soundOn=true,actx=null;
+try{soundOn=localStorage.getItem(SND_KEY)!=="0";}catch(e){}
+function tone(freq,start,dur,type,vol){
+  var o=actx.createOscillator(),g=actx.createGain(),t0=actx.currentTime+start;
+  o.type=type||"sine";o.frequency.value=freq;
+  g.gain.setValueAtTime(0.0001,t0);
+  g.gain.exponentialRampToValueAtTime(vol||0.06,t0+0.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  o.connect(g);g.connect(actx.destination);
+  o.start(t0);o.stop(t0+dur+0.03);
+}
+function sfx(kind){
+  if(!soundOn)return;
+  try{
+    if(!actx){
+      var AC=window.AudioContext||window.webkitAudioContext;
+      if(!AC)return;
+      actx=new AC();
+    }
+    if(actx.state==="suspended"&&actx.resume)actx.resume();
+    if(kind==="tap"){tone(640,0,0.07);}
+    else if(kind==="pop"){tone(520,0,0.06,"triangle");tone(780,0.05,0.08,"triangle");}
+    else if(kind==="ok"){tone(600,0,0.09);tone(820,0.08,0.12);}
+    else if(kind==="bad"){tone(240,0,0.16,"triangle",0.07);tone(190,0.12,0.2,"triangle",0.07);}
+    else if(kind==="win"){tone(523,0,0.12);tone(659,0.11,0.12);tone(784,0.22,0.12);tone(1047,0.33,0.3);}
+    else if(kind==="done"){tone(523,0,0.14);tone(659,0.13,0.2);}
+    else if(kind==="lose"){tone(392,0,0.16,"triangle");tone(330,0.15,0.16,"triangle");tone(262,0.3,0.28,"triangle");}
+  }catch(e){}
+}
+function drawSnd(){$("soundBtn").textContent=soundOn?"🔊":"🔇";}
+drawSnd();
+$("soundBtn").addEventListener("click",function(){
+  soundOn=!soundOn;
+  try{localStorage.setItem(SND_KEY,soundOn?"1":"0");}catch(e){}
+  drawSnd();
+  sfx("ok");
+});
+document.addEventListener("click",function(e){
+  var b=e.target.closest?e.target.closest("button"):null;
+  if(!b||b.id==="soundBtn")return;
+  sfx(b.classList.contains("opt")||b.classList.contains("round")?"pop":"tap");
+});
+
+function show(id){
+  var all=document.querySelectorAll(".screen");
+  for(var i=0;i<all.length;i++)all[i].classList.remove("active");
+  $(id).classList.add("active");window.scrollTo(0,0);
+}
+function msg(id,text,type){
+  var e=$(id);e.textContent=text||"";e.className="msg"+(text&&type?" "+type:"");
+  if(text&&type==="err")sfx("bad");
+  else if(text&&type==="ok")sfx("ok");
+}
+function norm(s){return String(s).trim().replace(/\s+/g," ").toLowerCase();}
+
+/* encoding */
+function enc(obj){
+  var b=btoa(unescape(encodeURIComponent(JSON.stringify(obj))));
+  return b.replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+}
+function dec(str){
+  var b=str.replace(/-/g,"+").replace(/_/g,"/");
+  while(b.length%4)b+="=";
+  return JSON.parse(decodeURIComponent(escape(atob(b))));
+}
+function validQuiz(d){
+  if(!d||typeof d!=="object"||typeof d.n!=="string"||!d.n.trim()||d.n.length>40)return false;
+  if(typeof d.g!=="string"||d.g.length>30)return false;
+  if(!Array.isArray(d.q)||d.q.length<1||d.q.length>20)return false;
+  for(var i=0;i<d.q.length;i++){
+    var x=d.q[i];
+    if(!x||typeof x.q!=="string"||typeof x.a!=="string")return false;
+    if(!x.q.trim()||!x.a.trim()||x.q.length>300||x.a.length>300)return false;
+  }
+  return true;
+}
+
+/* navigation */
+document.addEventListener("click",function(e){
+  var b=e.target.closest("[data-go]");
+  if(b)show(b.getAttribute("data-go"));
+});
+function startCreate(){show("s-creator");$("creatorName").value=S.name;}
+$("startBtn").addEventListener("click",startCreate);
+$("createBtn").addEventListener("click",startCreate);
+$("homeBoardBtn").addEventListener("click",openBoard);
+
+/* creator */
+$("creatorNext").addEventListener("click",function(){
+  var v=$("creatorName").value.trim();
+  if(!v){msg("m-creator","Please enter your name.","err");return;}
+  S.name=v;msg("m-creator","");
+  document.querySelectorAll("#genderOpts .opt").forEach(function(o){o.classList.toggle("sel",o.getAttribute("data-g")===S.gender);});
+  show("s-gender");
+});
+/* gender */
+$("genderOpts").addEventListener("click",function(e){
+  var o=e.target.closest(".opt");if(!o)return;
+  S.gender=o.getAttribute("data-g");
+  document.querySelectorAll("#genderOpts .opt").forEach(function(x){x.classList.toggle("sel",x===o);});
+  msg("m-gender","");
+});
+$("genderNext").addEventListener("click",function(){
+  if(!S.gender){msg("m-gender","Please choose an option.","err");return;}
+  $("countNum").textContent=S.count;show("s-count");
+});
+/* count */
+function setCount(n){S.count=n;$("countNum").textContent=n;msg("m-count","");}
+$("minusBtn").addEventListener("click",function(){
+  if(S.count>1)setCount(S.count-1);else msg("m-count","Minimum is 1 question.","err");
+});
+$("plusBtn").addEventListener("click",function(){
+  if(S.count<20)setCount(S.count+1);else msg("m-count","Maximum is 20 questions.","err");
+});
+function fields(box,arr,prefix,ph){
+  var c=$(box);c.innerHTML="";
+  for(var i=0;i<S.count;i++){
+    (function(i){
+      var l=document.createElement("label");l.textContent=prefix+" "+(i+1);
+      var inp=document.createElement("input");
+      inp.maxLength=300;inp.placeholder=ph;inp.value=arr[i]||"";
+      inp.addEventListener("input",function(){arr[i]=inp.value;});
+      c.appendChild(l);c.appendChild(inp);
+    })(i);
+  }
+}
+$("countNext").addEventListener("click",function(){
+  if(!(S.count>=1&&S.count<=20)){msg("m-count","Choose 1 to 20 questions.","err");return;}
+  S.qs.length=S.count;S.as.length=S.count;
+  fields("qFields",S.qs,"Question","Write your question");
+  msg("m-questions","");show("s-questions");
+});
+/* questions */
+function allFilled(arr){
+  for(var i=0;i<S.count;i++){if(!arr[i]||!arr[i].trim())return i+1;}
+  return 0;
+}
+$("questionsNext").addEventListener("click",function(){
+  var bad=allFilled(S.qs);
+  if(bad){msg("m-questions","Question "+bad+" is empty.","err");return;}
+  fields("aFields",S.as,"Answer to question","Correct answer");
+  msg("m-answers","");show("s-answers");
+});
+/* answers + link */
+$("answersNext").addEventListener("click",function(){
+  var bad=allFilled(S.as);
+  if(bad){msg("m-answers","Answer "+bad+" is empty.","err");return;}
+  var q=[];
+  for(var i=0;i<S.count;i++)q.push({q:S.qs[i].trim(),a:S.as[i].trim()});
+  var data=enc({n:S.name,g:S.gender,q:q});
+  if(data.length>MAX_DATA){msg("m-answers","Quiz is too long for a link. Shorten your questions or answers.","err");return;}
+  $("linkReady").classList.add("hidden");$("linkLoading").classList.remove("hidden");
+  show("s-share");
+  setTimeout(function(){
+    S.link=location.href.split("#")[0].split("?")[0]+"#q="+data;
+    $("linkBox").value=S.link;
+    $("fileWarn").textContent=location.protocol==="file:"?"Warning: you are viewing a local file, so this link will not work for friends yet. Deploy first, then create the quiz again from the deployed site.":"";
+    msg("m-share","");
+    $("linkLoading").classList.add("hidden");$("linkReady").classList.remove("hidden");
+    $("shareBtn").classList.toggle("hidden",!navigator.share);
+    sfx("win");
+  },500);
+});
+function fallbackCopy(){
+  var t=$("linkBox");t.focus();t.select();t.setSelectionRange(0,t.value.length);
+  var ok=false;try{ok=document.execCommand("copy");}catch(e){}
+  msg("m-share",ok?"Link copied!":"Could not copy automatically. Press and hold the link box, then choose Copy.",ok?"ok":"err");
+}
+$("copyBtn").addEventListener("click",function(){
+  if(navigator.clipboard&&window.isSecureContext){
+    navigator.clipboard.writeText(S.link).then(function(){msg("m-share","Link copied!","ok");},fallbackCopy);
+  }else fallbackCopy();
+});
+$("shareBtn").addEventListener("click",function(){
+  if(!navigator.share){fallbackCopy();return;}
+  navigator.share({title:"VYBLO Quiz",text:S.name+" made a VYBLO quiz for you!",url:S.link}).catch(function(e){
+    if(e&&e.name!=="AbortError")fallbackCopy();
+  });
+});
+
+/* friend opens quiz */
+function loadFromUrl(){
+  var h=location.hash;
+  if(!h||h.indexOf("#q=")!==0)return;
+  var raw=h.slice(3);
+  if(!raw||raw.length>MAX_DATA){fail("This quiz link is too long or incomplete. Ask your friend to send it again.");return;}
+  try{
+    var d=dec(raw);
+    if(!validQuiz(d))throw new Error("bad");
+    S.quiz=d;
+    $("friendTitle").textContent=d.n+"'s Quiz";
+    $("friendName").value="";msg("m-friend","");
+    show("s-friend");
+  }catch(e){fail("This quiz link is invalid or damaged. Ask your friend to send it again.");}
+}
+function fail(t){$("errText").textContent=t;show("s-error");}
+$("friendStart").addEventListener("click",function(){
+  var v=$("friendName").value.trim();
+  if(!v){msg("m-friend","Please enter your name.","err");return;}
+  S.friend=v;S.ans=[];S.idx=0;renderQ();show("s-play");
+});
+
+/* play */
+function renderQ(){
+  var n=S.quiz.q.length;
+  $("progressText").textContent="Question "+(S.idx+1)+" of "+n;
+  $("progressFill").style.width=((S.idx+1)/n*100)+"%";
+  $("playQ").textContent=S.quiz.q[S.idx].q;
+  $("playAns").value=S.ans[S.idx]||"";
+  $("nextQ").textContent=S.idx===n-1?"Submit":"Next";
+  $("backQ").textContent=S.idx===0?"Home":"Back";
+  msg("m-play","");
+}
+$("playAns").addEventListener("input",function(){S.ans[S.idx]=$("playAns").value;});
+$("backQ").addEventListener("click",function(){
+  if(S.idx===0){show("s-friend");return;}
+  S.idx--;renderQ();
+});
+$("nextQ").addEventListener("click",function(){
+  var v=($("playAns").value||"").trim();
+  if(!v){msg("m-play","Please type an answer first.","err");return;}
+  S.ans[S.idx]=v;
+  if(S.idx<S.quiz.q.length-1){S.idx++;renderQ();}
+  else finish();
+});
+
+/* results */
+function loadBoard(){
+  try{var r=JSON.parse(localStorage.getItem(KEY)||"[]");return Array.isArray(r)?r:[];}catch(e){return [];}
+}
+function saveBoard(list){try{localStorage.setItem(KEY,JSON.stringify(list));return true;}catch(e){return false;}}
+function finish(){
+  var qs=S.quiz.q,score=0,box=$("resList");
+  box.innerHTML="";
+  qs.forEach(function(x,i){
+    var ok=norm(S.ans[i])===norm(x.a);if(ok)score++;
+    var d=document.createElement("div");d.className="item"+(ok?"":" bad");
+    var b=document.createElement("b");b.textContent=(i+1)+". "+x.q;
+    var p1=document.createElement("div");p1.textContent="Your answer: "+S.ans[i];
+    var p2=document.createElement("div");p2.textContent="Correct answer: "+x.a;
+    var t=document.createElement("div");t.className="tag";t.textContent=ok?"✓ Correct":"✗ Incorrect";
+    d.appendChild(b);d.appendChild(p1);d.appendChild(p2);d.appendChild(t);box.appendChild(d);
+  });
+  $("resTitle").textContent=S.friend+", your results";
+  $("resScore").textContent=score+" / "+qs.length;
+  var list=loadBoard();
+  list.push({f:S.friend,c:S.quiz.n,s:score,t:qs.length});
+  saveBoard(list);
+  show("s-results");
+  setTimeout(function(){
+    var pct=score/qs.length;
+    sfx(pct===1?"win":pct>=0.5?"done":"lose");
+  },180);
+}
+$("againBtn").addEventListener("click",function(){S.ans=[];S.idx=0;renderQ();show("s-play");});
+$("resBoardBtn").addEventListener("click",openBoard);
+
+/* leaderboard */
+function openBoard(){
+  var list=loadBoard().slice().sort(function(a,b){return (b.s/b.t)-(a.s/a.t)||b.s-a.s;});
+  var box=$("boardList");box.innerHTML="";
+  if(!list.length){
+    var p=document.createElement("p");p.textContent="No results saved on this device yet.";box.appendChild(p);
+  }
+  list.slice(0,50).forEach(function(r,i){
+    var d=document.createElement("div");d.className="rank";
+    var a=document.createElement("span");a.textContent="#"+(i+1);
+    var b=document.createElement("span");b.textContent=String(r.f).slice(0,40)+" (quiz by "+String(r.c).slice(0,40)+")";
+    var c=document.createElement("span");c.textContent=r.s+" / "+r.t;
+    d.appendChild(a);d.appendChild(b);d.appendChild(c);box.appendChild(d);
+  });
+  msg("m-board","");show("s-board");
+}
+$("clearBoard").addEventListener("click",function(){
+  var ok=saveBoard([]);
+  try{localStorage.removeItem(KEY);}catch(e){}
+  openBoard();msg("m-board",ok?"Local results cleared.":"Local storage is unavailable.",ok?"ok":"err");
+});
+
+window.addEventListener("hashchange",loadFromUrl);
+loadFromUrl();
+})();
+</script>
+</body>
+</html>
